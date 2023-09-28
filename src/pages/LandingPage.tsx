@@ -1,68 +1,39 @@
-import { listCharacters } from "../services/charactersService";
-import { useQuery } from "react-query";
+import InfiniteScroll from "react-infinite-scroll-component";
+
+import { useCharacter } from "../hooks/useCharacter";
 
 const LandingPage = () => {
-  //   const [characters, setCharacters] = useState<ICharacter[]>();
-  //   const [isLoading, setIsLoading] = useState<boolean>();
-  //   const [error, setError] = useState<string | null>(null);
+  const { characters, error, fetchNextPage, hasNextPage, status } =
+    useCharacter();
 
-  //   useEffect(() => {
-  //     fetchCharacters();
-  //   }, []);
+  // if (status === "loading") return <Loader />;
 
-  //   const fetchCharacters = async () => {
-  //     setIsLoading(true);
-  //     try {
-  //       const [response] = await listCharacters({});
-  //       setCharacters(response?.results);
-  //       setIsLoading(false);
-  //       setError(null);
-  //       return response;
-  //     } catch (error) {
-  //       setError(`Hubo un problema: ${error}`);
-  //       console.error("Error fetching data:", error);
-  //     }
-  //   };
+  console.log(!!hasNextPage);
+  console.log(characters ? characters.results.length : 0);
 
-  const {
-    data: characters,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["characters"],
-    staleTime: Infinity,
-    queryFn: async () => {
-      try {
-        const [response] = await listCharacters({});
-        return response;
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    },
-  });
+  if (status === "error") return <h4>Ups!, {`${error}` as string}</h4>;
 
   return (
     <div>
-      <h1>Rick and Morty Characters</h1>
-      {error ? (
-        <p>Hubo un error</p>
-      ) : (
-        <div>
-          {isLoading ? (
-            <p>Cargando...</p>
-          ) : (
-            <ul>
-              {characters?.results.map((character) => (
-                <li key={character.id}>
-                  <img src={character.image} alt={character.name} />
-                  <h2>{character.name}</h2>
-                  <p>Species: {character.species}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      <h1 className="title">React Infinite Scroll</h1>
+      <InfiniteScroll
+        dataLength={characters?.results.length || 0}
+        next={fetchNextPage}
+        hasMore={!!hasNextPage}
+        loader={<p>Cargando mas items</p>}
+        endMessage={<p>No more data to load.</p>}
+      >
+        <ul>
+          {characters &&
+            characters.results.map((character) => (
+              <li key={character.id}>
+                <img src={character.image} alt={character.name} />
+                <h2>{character.name}</h2>
+                <p>Species: {character.species}</p>
+              </li>
+            ))}
+        </ul>
+      </InfiniteScroll>
     </div>
   );
 };
